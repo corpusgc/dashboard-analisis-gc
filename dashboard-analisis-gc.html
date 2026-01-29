@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Análisis - Guardia Civil León</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a3a1a 0%, #0d1f0d 100%);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #2d5016 0%, #1a3a1a 50%, #8b7355 100%);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #d4af37;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #d4af37;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            font-weight: bold;
+        }
+
+        .header .time {
+            font-size: 18px;
+            color: #d4af37;
+            font-weight: bold;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            padding: 10px;
+            height: calc(100vh - 80px);
+        }
+
+        .panel {
+            background: rgba(45, 80, 22, 0.3);
+            border: 2px solid #2d5016;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .panel-title {
+            background: linear-gradient(90deg, #2d5016 0%, #3d6b1f 100%);
+            color: #d4af37;
+            padding: 10px 15px;
+            margin: -15px -15px 15px -15px;
+            font-weight: bold;
+            font-size: 16px;
+            border-bottom: 2px solid #d4af37;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .gallery {
+            grid-row: 1 / 3;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .gallery-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 8px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        .gallery-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .gallery-container::-webkit-scrollbar-track {
+            background: rgba(45, 80, 22, 0.3);
+            border-radius: 4px;
+        }
+
+        .gallery-container::-webkit-scrollbar-thumb {
+            background: #2d5016;
+            border-radius: 4px;
+        }
+
+        .gallery-container::-webkit-scrollbar-thumb:hover {
+            background: #3d6b1f;
+        }
+
+        .gallery-item {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 2px solid #2d5016;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-item:hover {
+            border-color: #d4af37;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+        }
+
+        .cameras {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .camera-btn {
+            background: linear-gradient(135deg, #2d5016 0%, #3d6b1f 100%);
+            color: #d4af37;
+            border: 1px solid #d4af37;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .camera-btn:hover {
+            background: linear-gradient(135deg, #3d6b1f 0%, #4d7b2f 100%);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .camera-btn.active {
+            background: #d4af37;
+            color: #1a3a1a;
+        }
+
+        .camera-frame {
+            flex: 1;
+            border: 2px solid #2d5016;
+            border-radius: 5px;
+            background: #000;
+        }
+
+        .social-feed {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .twitter-container {
+            flex: 1;
+            overflow: hidden;
+            border-radius: 5px;
+            background: #000;
+        }
+
+        .map-container {
+            flex: 1;
+            border-radius: 5px;
+            overflow: hidden;
+            border: 2px solid #2d5016;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: #d4af37;
+            font-size: 18px;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        /* Modal para imagen expandida */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #d4af37;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎖️ DASHBOARD DE ANÁLISIS - GUARDIA CIVIL LEÓN</h1>
+        <div class="time" id="currentTime"></div>
+    </div>
+
+    <div class="container">
+        <!-- GALERÍA DE IMÁGENES (50% - Izquierda completa) -->
+        <div class="panel gallery">
+            <div class="panel-title">📸 Imágenes de Prensa - Recortes Diarios</div>
+            <div class="gallery-container" id="galleryContainer">
+                <div class="loading">Cargando imágenes desde Google Drive</div>
+            </div>
+        </div>
+
+        <!-- CÁMARAS DE TRÁFICO (25% - Arriba derecha) -->
+        <div class="panel cameras">
+            <div class="panel-title">🚦 Cámaras de Tráfico DGT - Castilla y León</div>
+            <div class="camera-controls">
+                <button class="camera-btn active" onclick="changeCameraProvince('47')">Valladolid</button>
+                <button class="camera-btn" onclick="changeCameraProvince('24')">León</button>
+                <button class="camera-btn" onclick="changeCameraProvince('09')">Burgos</button>
+                <button class="camera-btn" onclick="changeCameraProvince('37')">Salamanca</button>
+                <button class="camera-btn" onclick="changeCameraProvince('05')">Ávila</button>
+                <button class="camera-btn" onclick="changeCameraProvince('40')">Segovia</button>
+                <button class="camera-btn" onclick="changeCameraProvince('34')">Palencia</button>
+                <button class="camera-btn" onclick="changeCameraProvince('42')">Soria</button>
+                <button class="camera-btn" onclick="changeCameraProvince('49')">Zamora</button>
+            </div>
+            <iframe id="cameraFrame" class="camera-frame" 
+                src="https://www.dgt.es/conoce-el-estado-del-trafico/camaras-de-trafico/?pag=1&prov=47" 
+                frameborder="0">
+            </iframe>
+        </div>
+
+        <!-- REDES SOCIALES (25% - Abajo derecha) -->
+        <div class="panel social-feed">
+            <div class="panel-title">🐦 Monitorización Red Social X (Twitter)</div>
+            <div class="twitter-container">
+                <a class="twitter-timeline" 
+                   data-theme="dark" 
+                   data-chrome="noheader nofooter noborders transparent"
+                   href="https://twitter.com/i/lists/1067669864435863552">
+                   Cargando lista...
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para expandir imágenes -->
+    <div id="imageModal" class="modal" onclick="closeModal()">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="expandedImg">
+    </div>
+
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    <script>
+        // Actualizar reloj
+        function updateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            document.getElementById('currentTime').textContent = 
+                now.toLocaleDateString('es-ES', options);
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Cambiar provincia de cámaras
+        function changeCameraProvince(prov) {
+            const buttons = document.querySelectorAll('.camera-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('cameraFrame').src = 
+                `https://www.dgt.es/conoce-el-estado-del-trafico/camaras-de-trafico/?pag=1&prov=${prov}`;
+        }
+
+        // Cargar imágenes desde Google Drive
+        async function loadGoogleDriveImages() {
+            // ⚠️ IMPORTANTE: Reemplaza esta URL con la URL de tu Google Apps Script
+            // Instrucciones completas en el archivo README.md y google-apps-script.js
+            const apiUrl = 'PEGA-AQUI-TU-URL-DE-GOOGLE-APPS-SCRIPT';
+            
+            const galleryContainer = document.getElementById('galleryContainer');
+            
+            // Si aún no has configurado Google Apps Script, muestra imágenes de ejemplo
+            if (apiUrl === 'PEGA-AQUI-TU-URL-DE-GOOGLE-APPS-SCRIPT') {
+                galleryContainer.innerHTML = '';
+                
+                // Mostrar imágenes de ejemplo con el diseño correcto
+                for (let i = 1; i <= 16; i++) {
+                    const img = document.createElement('img');
+                    img.className = 'gallery-item';
+                    img.alt = `Imagen de ejemplo ${i}`;
+                    img.title = 'Configura Google Apps Script para ver tus imágenes reales';
+                    img.onclick = function() { openModal(this.src); };
+                    img.src = `https://via.placeholder.com/300x200/2d5016/d4af37?text=Imagen+${i}+%0AConfigura+Drive`;
+                    galleryContainer.appendChild(img);
+                }
+                
+                // Mostrar mensaje de configuración
+                const mensaje = document.createElement('div');
+                mensaje.style.cssText = 'grid-column: 1 / -1; text-align: center; color: #d4af37; padding: 20px; background: rgba(45, 80, 22, 0.5); border-radius: 5px; margin: 10px;';
+                mensaje.innerHTML = '⚠️ <strong>Configura Google Apps Script</strong><br>Lee el archivo README.md para conectar tus imágenes de Google Drive';
+                galleryContainer.appendChild(mensaje);
+                
+                return;
+            }
+            
+            // Cargar imágenes reales desde Google Apps Script
+            try {
+                galleryContainer.innerHTML = '<div class="loading">Cargando imágenes desde Google Drive</div>';
+                
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                if (data.success && data.images.length > 0) {
+                    galleryContainer.innerHTML = '';
+                    
+                    data.images.forEach((img, index) => {
+                        const imgElement = document.createElement('img');
+                        imgElement.className = 'gallery-item';
+                        imgElement.src = img.url;
+                        imgElement.alt = img.name;
+                        imgElement.title = `${img.name}\nSubida: ${new Date(img.dateCreated).toLocaleString('es-ES')}`;
+                        imgElement.loading = 'lazy';
+                        imgElement.onclick = function() { openModal(this.src); };
+                        
+                        // Manejar errores de carga de imagen individual
+                        imgElement.onerror = function() {
+                            this.src = 'https://via.placeholder.com/300x200/2d5016/d4af37?text=Error+carga';
+                        };
+                        
+                        galleryContainer.appendChild(imgElement);
+                    });
+                    
+                    // Mostrar información de última actualización
+                    console.log(`✅ Cargadas ${data.images.length} imágenes desde Google Drive`);
+                    console.log(`⏰ Última actualización: ${new Date(data.lastUpdate).toLocaleString('es-ES')}`);
+                    
+                } else if (data.success && data.images.length === 0) {
+                    galleryContainer.innerHTML = '<div class="loading">No hay imágenes en la carpeta de Google Drive</div>';
+                } else {
+                    galleryContainer.innerHTML = `<div class="loading">Error: ${data.message || 'Error desconocido'}</div>`;
+                }
+                
+            } catch (error) {
+                console.error('❌ Error cargando imágenes:', error);
+                galleryContainer.innerHTML = '<div class="loading">Error de conexión con Google Drive<br>Verifica la configuración del Google Apps Script</div>';
+            }
+        }
+
+        // Modal para expandir imágenes
+        function openModal(src) {
+            document.getElementById('imageModal').style.display = 'block';
+            document.getElementById('expandedImg').src = src;
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        // Cargar imágenes al iniciar
+        loadGoogleDriveImages();
+
+        // Recargar imágenes cada 5 minutos
+        setInterval(loadGoogleDriveImages, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
