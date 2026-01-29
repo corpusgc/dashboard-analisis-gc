@@ -17,8 +17,9 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a3a1a 0%, #0d1f0d 100%);
             color: #fff;
-            overflow: hidden;
-            height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+            min-height: 100vh;
         }
 
         .header {
@@ -66,6 +67,13 @@
         }
         
         /* Nueva distribución: Cámaras 50%, Fotos 25%, Twitter 25% */
+
+        @media screen and (max-width: 768px) {
+            .container {
+                height: auto;
+                min-height: auto;
+            }
+        }
 
         .panel {
             background: rgba(45, 80, 22, 0.3);
@@ -198,6 +206,11 @@
 
         /* Responsive para móviles */
         @media screen and (max-width: 768px) {
+            body {
+                overflow-y: scroll;
+                height: auto;
+            }
+
             .header {
                 padding: 10px 15px;
                 flex-direction: column;
@@ -226,20 +239,24 @@
                 grid-template-columns: 1fr;
                 grid-template-rows: auto;
                 height: auto;
-                min-height: calc(100vh - 120px);
+                min-height: auto;
+                padding-bottom: 20px;
             }
 
             .cameras {
                 grid-row: auto;
-                min-height: 400px;
+                min-height: 500px;
+                height: auto;
             }
 
             .traffic-map {
-                min-height: 400px;
+                min-height: 500px;
+                height: auto;
             }
 
             .social-feed {
-                min-height: 500px;
+                min-height: 600px;
+                height: auto;
             }
 
             .camera-btn {
@@ -250,6 +267,10 @@
             .panel-title {
                 font-size: 14px;
                 padding: 8px 12px;
+            }
+
+            .panel {
+                margin-bottom: 10px;
             }
         }
 
