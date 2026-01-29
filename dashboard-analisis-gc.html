@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Dashboard de Análisis - Guardia Civil León</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -13,6 +15,14 @@
             box-sizing: border-box;
         }
 
+        html {
+            overflow-y: auto;
+            overflow-x: hidden;
+            height: auto;
+            min-height: 100vh;
+            -webkit-overflow-scrolling: touch; /* iOS smooth scroll */
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a3a1a 0%, #0d1f0d 100%);
@@ -20,6 +30,9 @@
             overflow-x: hidden;
             overflow-y: auto;
             min-height: 100vh;
+            height: auto;
+            position: relative;
+            -webkit-overflow-scrolling: touch; /* iOS smooth scroll */
         }
 
         .header {
@@ -64,6 +77,7 @@
             gap: 10px;
             padding: 10px;
             height: calc(100vh - 80px);
+            position: relative;
         }
         
         /* Nueva distribución: Cámaras 50%, Fotos 25%, Twitter 25% */
@@ -72,6 +86,7 @@
             .container {
                 height: auto;
                 min-height: auto;
+                overflow: visible;
             }
         }
 
@@ -206,9 +221,13 @@
 
         /* Responsive para móviles */
         @media screen and (max-width: 768px) {
-            body {
-                overflow-y: scroll;
-                height: auto;
+            html, body {
+                overflow-y: scroll !important;
+                overflow-x: hidden !important;
+                height: auto !important;
+                position: relative !important;
+                -webkit-overflow-scrolling: touch !important;
+                touch-action: pan-y !important;
             }
 
             .header {
@@ -216,6 +235,7 @@
                 flex-direction: column;
                 gap: 10px;
                 text-align: center;
+                position: relative;
             }
 
             .header-left {
@@ -236,27 +256,37 @@
             }
 
             .container {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto;
-                height: auto;
-                min-height: auto;
+                grid-template-columns: 1fr !important;
+                grid-template-rows: auto !important;
+                height: auto !important;
+                min-height: auto !important;
                 padding-bottom: 20px;
+                overflow: visible !important;
+                position: relative;
             }
 
             .cameras {
                 grid-row: auto;
                 min-height: 500px;
                 height: auto;
+                overflow: visible;
             }
 
             .traffic-map {
                 min-height: 500px;
                 height: auto;
+                overflow: visible;
             }
 
             .social-feed {
                 min-height: 600px;
                 height: auto;
+                overflow: visible;
+            }
+
+            .panel {
+                margin-bottom: 10px;
+                overflow: visible;
             }
 
             .camera-btn {
@@ -267,10 +297,6 @@
             .panel-title {
                 font-size: 14px;
                 padding: 8px 12px;
-            }
-
-            .panel {
-                margin-bottom: 10px;
             }
         }
 
