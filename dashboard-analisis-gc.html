@@ -157,6 +157,13 @@
             background: #000;
         }
 
+        .twitter-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+
         .map-container {
             flex: 1;
             border-radius: 5px;
@@ -234,17 +241,18 @@
         <div class="panel social-feed">
             <div class="panel-title">🐦 Monitorización Red Social X (Twitter)</div>
             <div class="twitter-container">
-                <a class="twitter-timeline" 
-                   data-theme="dark" 
-                   data-chrome="noheader nofooter noborders transparent"
-                   href="https://twitter.com/i/lists/1067669864435863552">
-                   Cargando lista...
-                </a>
+                <iframe 
+                    id="twitterFrame"
+                    class="twitter-frame"
+                    src="https://x.com/i/lists/1067669864435863552"
+                    frameborder="0"
+                    scrolling="yes"
+                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms">
+                </iframe>
             </div>
         </div>
     </div>
 
-    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
     <script>
         // Actualizar reloj
         function updateTime() {
